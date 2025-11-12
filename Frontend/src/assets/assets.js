@@ -21,7 +21,7 @@ import Photo4 from './Photo4.jpg'
 import Photo5 from './Photo5.jpg'
 import Photo6 from './Photo6.webp'
 import Photo7 from './Photo7.gif'
-import Photo9 from './Photo9.webp'
+import Photo9 from './photo9.webp'
 import ads2 from './Ads2.jpg'
 import Photo2 from './Ads2.jpg'
 export const assets = {
