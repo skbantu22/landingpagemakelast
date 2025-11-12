@@ -7,26 +7,24 @@ import MongoStore from "connect-mongo";
 
 import userRoutes from "./routes/userRoutes.js";
 import adminRoute from "./routes/adminRoute.js";
-import connectDB from "./config/db.js";
 import metaRoute from "./routes/metaRoute.js";
+import connectDB from "./config/db.js";
 
-// ----------------- Load environment variables -----------------
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
 // ----------------- CORS -----------------
-// Allow your local dev and production frontend domains
 const allowedOrigins = [
-  "http://localhost:5174",                  // local dev
-  "https://primehealthcare202.cloud",      // production domain
-  "https://www.primehealthcare202.cloud"   // www subdomain
+   "http://localhost:5173",
+  process.env.FRONTEND_URL || "http://localhost:5174",
+  `https://www.${process.env.FRONTEND_URL || "primehealthcare202.cloud"}`
 ];
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // allow Postman/curl
+    if (!origin) return callback(null, true); // Postman/curl
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -36,27 +34,27 @@ app.use(cors({
   credentials: true,
 }));
 
-// ----------------- Trust Proxy (for HTTPS on VPS) -----------------
+// ----------------- Trust Proxy -----------------
 app.set('trust proxy', 1);
 
 // ----------------- Session -----------------
 app.use(session({
-  secret: process.env.SESSION_SECRET || "your_secret_key_here",
+  secret: process.env.SESSION_SECRET || "supersecretkey",
   resave: false,
   saveUninitialized: true,
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: { 
-    maxAge: 30 * 60 * 1000,                  // 30 minutes
-    secure: process.env.NODE_ENV === 'production', // only HTTPS in production
+    maxAge: 30 * 60 * 1000,
+    secure: process.env.NODE_ENV === 'production', 
     httpOnly: true
   }
 }));
 
 // ----------------- Rate Limiter -----------------
 const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 5,
-  message: { success: false, message: "Too many requests from this IP. Try later." }
+  windowMs: 60 * 1000, // 1 min
+  max: 10,             // adjust for production
+  message: { success: false, message: "Too many requests. Try later." }
 });
 app.use("/api/users", limiter);
 
@@ -66,7 +64,7 @@ app.use("/api/admin", adminRoute);
 app.use("/api/meta", metaRoute);
 
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.send("🚀 API is running...");
 });
 
 // ----------------- DB & Server -----------------
